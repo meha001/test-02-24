@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}{{ giveaway.title }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+    <a href="{{ url_for('main.index') }}">Главная</a>
+    <span>/</span>
+    <span>{{ giveaway.title }}</span>
+</nav>
+
+<header class="page-header">
+    <div class="page-header__main">
+        <span class="badge badge--{{ giveaway.status }}">{{ STATUS_LABELS[giveaway.status] }}</span>
+        <h1 class="page-header__title">{{ giveaway.title }}</h1>
+        {% if giveaway.description %}
+            <p class="page-header__desc">{{ giveaway.description }}</p>
+        {% endif %}
+    </div>
+    <div class="page-header__actions">
+        {% if giveaway.status != 'completed' %}
+            <a href="{{ url_for('main.edit_giveaway', id=giveaway.id) }}" class="btn btn--ghost btn--sm">Редактировать</a>
+        {% endif %}
+        {% if giveaway.status == 'completed' %}
+            <a href="{{ url_for('main.results', id=giveaway.id) }}" class="btn btn--gold btn--sm">Результаты</a>
+        {% elif giveaway.can_draw %}
+            <a href="{{ url_for('main.draw_page', id=giveaway.id) }}" class="btn btn--primary btn--sm">🎲 Провести розыгрыш</a>
+        {% endif %}
+        <form method="post" action="{{ url_for('main.update_status', id=giveaway.id) }}" class="inline-form"
+              onsubmit="return confirm('Удалить розыгрыш «{{ giveaway.title }}» безвозвратно?')">
+            <input type="hidden" name="action" value="delete">
+            <button type="submit" class="btn btn--danger btn--sm">🗑 Удалить</button>
+        </form>
+    </div>
+</header>
+
+{% if giveaway.status == 'active' %}
+<section class="public-link-card">
+    <h3>🔗 Публичная регистрация</h3>
+    <p class="public-link-card__hint">Отправьте эту ссылку участникам — они смогут зарегистрироваться сами</p>
+    <div class="public-link-row">
+        <input type="text" class="public-link-input" id="publicUrl" value="{{ public_url }}" readonly>
+        <button type="button" class="btn btn--primary btn--sm" data-copy-target="publicUrl">Копировать</button>
+        <a href="{{ url_for('main.public_register', token=giveaway.public_token) }}" target="_blank" class="btn btn--ghost btn--sm">Открыть</a>
+    </div>
+</section>
+{% elif giveaway.status == 'draft' %}
+<p class="public-link-card public-link-card--muted">
+    После активации розыгрыша здесь появится ссылка для публичной регистрации
+</p>
+{% endif %}
+
+<div class="detail-layout">
+<div class="detail-grid">
+    <section class="panel">
+        <div class="panel__header">
+            <h2>🎁 Призы</h2>
+            <span class="panel__count">{{ giveaway.prize_slots }} мест</span>
+        </div>
+
+        {% if giveaway.prizes %}
+            <ul class="item-list">
+                {% for prize in giveaway.prizes %}
+                <li class="item-list__row">
+                    <div class="item-list__info">
+                        <strong>{{ prize.name }}</strong>
+                        {% if prize.description %}<span>{{ prize.description }}</span>{% endif %}
+                        <span class="tag">× {{ prize.quantity }}</span>
+                    </div>
+                    {% if giveaway.status != 'completed' %}
+                    <form method="post" action="{{ url_for('main.delete_prize', gid=giveaway.id, pid=prize.id) }}" class="inline-form"
+                          onsubmit="return confirm('Удалить приз?')">
+                        <button type="submit" class="btn-icon" title="Удалить">✕</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="panel__empty">Призы ещё не добавлены</p>
+        {% endif %}
+
+        {% if giveaway.status != 'completed' %}
+        <form method="post" action="{{ url_for('main.add_prize', id=giveaway.id) }}" class="inline-add-form">
+            <input type="text" name="name" placeholder="Название приза" required>
+            <input type="number" name="quantity" value="1" min="1" max="99" title="Количество">
+            <button type="submit" class="btn btn--primary btn--sm">Добавить</button>
+        </form>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <div class="panel__header">
+            <h2>👥 Участники</h2>
+            <span class="panel__count">{{ giveaway.participants|length }}</span>
+        </div>
+
+        {% if giveaway.participants %}
+            <ul class="item-list item-list--participants">
+                {% for p in giveaway.participants %}
+                <li class="item-list__row">
+                    <div class="item-list__info">
+                        <strong>{{ p.name }}</strong>
+                        {% if p.contact %}<span>{{ p.contact }}</span>{% endif %}
+                        <code class="ticket">{{ p.ticket_code }}</code>
+                    </div>
+                    {% if giveaway.status == 'active' %}
+                    <form method="post" action="{{ url_for('main.delete_participant', gid=giveaway.id, pid=p.id) }}" class="inline-form"
+                          onsubmit="return confirm('Удалить участника?')">
+                        <button type="submit" class="btn-icon" title="Удалить">✕</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="panel__empty">Участников пока нет</p>
+        {% endif %}
+
+        {% if giveaway.status == 'active' %}
+        <form method="post" action="{{ url_for('main.add_participant', id=giveaway.id) }}" class="inline-add-form inline-add-form--stack">
+            <input type="text" name="name" placeholder="Имя участника" required>
+            <input type="text" name="contact" placeholder="Email или телефон (необязательно)">
+            <button type="submit" class="btn btn--primary btn--sm">Зарегистрировать</button>
+        </form>
+        {% elif giveaway.status == 'draft' %}
+            <p class="panel__hint">Активируйте розыгрыш, чтобы принимать участников</p>
+        {% endif %}
+    </section>
+</div>
+
+<aside class="sidebar-card">
+    <h3>Управление</h3>
+    <ul class="checklist">
+        <li class="{% if giveaway.prizes %}done{% endif %}">Добавить призы</li>
+        <li class="{% if giveaway.status == 'active' or giveaway.status == 'completed' %}done{% endif %}">Активировать розыгрыш</li>
+        <li class="{% if giveaway.participants|length >= giveaway.prize_slots and giveaway.prize_slots > 0 %}done{% endif %}">
+            Участников ≥ призов ({{ giveaway.participants|length }}/{{ giveaway.prize_slots }})
+        </li>
+        <li class="{% if giveaway.status == 'completed' %}done{% endif %}">Провести жеребьёвку</li>
+    </ul>
+
+    {% if giveaway.status == 'draft' %}
+    <form method="post" action="{{ url_for('main.update_status', id=giveaway.id) }}">
+        <input type="hidden" name="action" value="activate">
+        <button type="submit" class="btn btn--primary btn--block">Активировать розыгрыш</button>
+    </form>
+    {% elif giveaway.status == 'active' and not giveaway.winners %}
+    <form method="post" action="{{ url_for('main.update_status', id=giveaway.id) }}">
+        <input type="hidden" name="action" value="draft">
+        <button type="submit" class="btn btn--ghost btn--block">Вернуть в черновик</button>
+    </form>
+    {% endif %}
+
+    {% if giveaway.can_draw %}
+    <a href="{{ url_for('main.draw_page', id=giveaway.id) }}" class="btn btn--gold btn--block btn--lg draw-cta">🎲 Запустить розыгрыш!</a>
+    {% elif giveaway.status == 'active' and giveaway.prize_slots > 0 %}
+    <p class="sidebar-card__warn">
+        {% if giveaway.participants|length < giveaway.prize_slots %}
+            Нужно ещё {{ giveaway.prize_slots - giveaway.participants|length }} участник(ов)
+        {% else %}
+            Добавьте призы для розыгрыша
+        {% endif %}
+    </p>
+    {% endif %}
+
+</aside>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "public_base.html" %}
+{% block title %}{{ giveaway.title }}{% endblock %}
+
+{% block content %}
+<div class="public-page">
+    <div class="public-card">
+        <div class="public-card__badge">🎁 Розыгрыш</div>
+        <h1 class="public-card__title">{{ giveaway.title }}</h1>
+        {% if giveaway.description %}
+            <p class="public-card__desc">{{ giveaway.description }}</p>
+        {% endif %}
+
+        {% if giveaway.prizes %}
+        <div class="public-prizes">
+            <h2>Призы</h2>
+            <ul>
+                {% for prize in giveaway.prizes %}
+                <li>
+                    <strong>{{ prize.name }}</strong>
+                    {% if prize.quantity > 1 %}<span class="tag">× {{ prize.quantity }}</span>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if success and participant %}
+        <div class="public-success">
+            <div class="public-success__icon">✅</div>
+            <h2>Вы зарегистрированы!</h2>
+            <p>Сохраните номер билета — он понадобится при проверке победителя.</p>
+            <div class="public-ticket">
+                <span class="public-ticket__label">Ваш билет</span>
+                <code id="ticketCode">{{ participant.ticket_code }}</code>
+            </div>
+            <p class="public-success__name">{{ participant.name }}</p>
+        </div>
+
+        {% elif closed %}
+        <div class="public-closed">
+            {% if giveaway.status == 'completed' %}
+                <span class="public-closed__icon">🏆</span>
+                <h2>Розыгрыш завершён</h2>
+                <p>Регистрация закрыта, победители уже определены.</p>
+            {% else %}
+                <span class="public-closed__icon">⏳</span>
+                <h2>Регистрация скоро откроется</h2>
+                <p>Организатор ещё не активировал розыгрыш. Загляните позже.</p>
+            {% endif %}
+        </div>
+
+        {% else %}
+        {% if error %}
+            <div class="flash flash--error public-flash">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" class="form public-form">
+            <div class="form-group">
+                <label for="name">Ваше имя *</label>
+                <input type="text" id="name" name="name" required
+                       value="{{ form_name or '' }}"
+                       placeholder="Как к вам обращаться">
+            </div>
+            <div class="form-group">
+                <label for="contact">Email или телефон</label>
+                <input type="text" id="contact" name="contact"
+                       value="{{ form_contact or '' }}"
+                       placeholder="Для связи, если выиграете">
+                <span class="form-hint">Один контакт — одна регистрация</span>
+            </div>
+            <button type="submit" class="btn btn--primary btn--block btn--lg">
+                Участвовать в розыгрыше
+            </button>
+        </form>
+        {% endif %}
+
+        <p class="public-card__count">{{ giveaway.participants|length }} участник(ов) уже зарегистрировано</p>
+    </div>
+</div>
+{% endblock %}

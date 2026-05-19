@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Результаты — {{ giveaway.title }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+    <a href="{{ url_for('main.index') }}">Главная</a>
+    <span>/</span>
+    <a href="{{ url_for('main.giveaway_detail', id=giveaway.id) }}">{{ giveaway.title }}</a>
+    <span>/</span>
+    <span>Результаты</span>
+</nav>
+
+<section class="results-page">
+    <header class="results-header">
+        <div class="confetti-icon">🏆</div>
+        <h1>Победители розыгрыша</h1>
+        <p>{{ giveaway.title }}</p>
+        {% if giveaway.drawn_at %}
+            <time class="results-header__date">{{ giveaway.drawn_at.strftime('%d.%m.%Y в %H:%M') }}</time>
+        {% endif %}
+    </header>
+
+    {% if winners %}
+    <ol class="winners-list">
+        {% for w in winners %}
+        <li class="winner-card winner-card--place-{{ w.place if w.place <= 3 else 'n' }}">
+            <span class="winner-card__place">{{ w.place }}</span>
+            <div class="winner-card__body">
+                <h3>{{ w.participant.name }}</h3>
+                <p class="winner-card__prize">🎁 {{ w.prize.name }}</p>
+                <code class="ticket">{{ w.participant.ticket_code }}</code>
+                {% if w.participant.contact %}
+                    <span class="winner-card__contact">{{ w.participant.contact }}</span>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <p class="panel__empty">Победители ещё не определены</p>
+    {% endif %}
+
+    <div class="results-actions">
+        <a href="{{ url_for('main.giveaway_detail', id=giveaway.id) }}" class="btn btn--ghost">К розыгрышу</a>
+        <a href="{{ url_for('main.index') }}" class="btn btn--primary">На главную</a>
+    </div>
+</section>
+{% endblock %}

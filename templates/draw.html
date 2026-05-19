@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Розыгрыш — {{ giveaway.title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.draw-stage { min-height: 420px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+    <a href="{{ url_for('main.giveaway_detail', id=giveaway.id) }}">← {{ giveaway.title }}</a>
+</nav>
+
+<section class="draw-page">
+    <h1 class="draw-page__title">Жеребьёвка</h1>
+    <p class="draw-page__subtitle">{{ giveaway.participants|length }} участников · {{ giveaway.prize_slots }} призовых мест</p>
+
+    <div class="draw-stage" id="drawStage">
+        <div class="drum" id="drum">
+            <div class="drum__window">
+                <ul class="drum__list" id="drumList">
+                    {% for p in giveaway.participants %}
+                    <li data-name="{{ p.name }}" data-ticket="{{ p.ticket_code }}">{{ p.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <p class="draw-stage__status" id="drawStatus">Нажмите кнопку, чтобы начать</p>
+    </div>
+
+    <form action="{{ url_for('main.execute_draw', id=giveaway.id) }}" id="drawForm" class="draw-actions">
+        <button type="button" class="btn btn--gold btn--lg" id="startDraw" {% if not giveaway.can_draw %}disabled{% endif %}>
+            🎲 Крутить барабан
+        </button>
+        <a href="#" class="btn btn--primary btn--lg hidden" id="confirmDraw">
+            Все победители
+        </a>
+    </form>
+</section>
+
+<script>
+window.DRAW_NAMES = {{ giveaway.participants | map(attribute='name') | list | tojson }};
+</script>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/draw.js') }}"></script>
+{% endblock %}

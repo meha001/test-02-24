@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ПризХаб{% endblock %} — Розыгрыш призов</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="bg-glow bg-glow--1"></div>
+    <div class="bg-glow bg-glow--2"></div>
+
+    <header class="header">
+        <div class="container header__inner">
+            <a href="{{ url_for('main.index') }}" class="logo">
+                <span class="logo__icon">🎁</span>
+                <span class="logo__text">Приз<span>Хаб</span></span>
+            </a>
+            <nav class="nav">
+                <a href="{{ url_for('main.index') }}" class="nav__link">Розыгрыши</a>
+                <a href="{{ url_for('main.create_giveaway') }}" class="btn btn--primary btn--sm">+ Новый розыгрыш</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-list">
+                        {% for category, message in messages %}
+                            <div class="flash flash--{{ category }}" role="alert">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer__inner">
+            <p>Система розыгрыша призов · Flask</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

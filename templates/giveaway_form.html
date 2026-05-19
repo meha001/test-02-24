@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Редактирование' if giveaway else 'Новый розыгрыш' }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb">
+    <a href="{{ url_for('main.index') }}">Главная</a>
+    <span>/</span>
+    <span>{{ 'Редактирование' if giveaway else 'Новый розыгрыш' }}</span>
+</nav>
+
+<section class="form-page">
+    <div class="form-card">
+        <h1 class="form-card__title">{{ 'Редактировать розыгрыш' if giveaway else 'Новый розыгрыш' }}</h1>
+        <p class="form-card__subtitle">Заполните основную информацию. Призы и участников добавите на следующем шаге.</p>
+
+        <form method="post" class="form">
+            <div class="form-group">
+                <label for="title">Название *</label>
+                <input type="text" id="title" name="title" required
+                       value="{{ giveaway.title if giveaway else '' }}"
+                       placeholder="Например: Новогодний розыгрыш 2026">
+            </div>
+            <div class="form-group">
+                <label for="description">Описание</label>
+                <textarea id="description" name="description" rows="4"
+                          placeholder="Условия участия, даты, правила…">{{ giveaway.description if giveaway else '' }}</textarea>
+            </div>
+            <div class="form-actions">
+                <a href="{{ url_for('main.giveaway_detail', id=giveaway.id) if giveaway else url_for('main.index') }}" class="btn btn--ghost">Отмена</a>
+                <button type="submit" class="btn btn--primary">{{ 'Сохранить' if giveaway else 'Создать розыгрыш' }}</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
