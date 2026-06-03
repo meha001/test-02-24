@@ -101,8 +101,11 @@ def update_status(id):
     return redirect(url_for("main.giveaway_detail", id=id))
 
 
-@bp.route("/giveaway/<int:id>/prize", methods=["POST"])
+@bp.route("/giveaway/<int:id>/prize", methods=["GET", "POST"])
 def add_prize(id):
+    if request.method == "GET":
+        return redirect(url_for("main.giveaway_detail", id=id))
+
     giveaway = Giveaway.query.get_or_404(id)
     if giveaway.status == "completed":
         flash("Нельзя добавлять призы в завершённый розыгрыш", "error")
